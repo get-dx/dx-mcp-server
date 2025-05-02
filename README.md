@@ -1,11 +1,11 @@
 # DX MCP Server
 
-<h4>Use natural language to write and execute queries on organizational data in your DX Datacloud!</h4>
+<h4>Use natural language to write and execute queries on your organizational data in DX Datacloud!</h4>
 
 
 ## About
 
-The DX MCP Server is a Python-based tool that lets you interact with your Datacloud database through MCP clients, such as Claude Desktop and Cursor. The server runs locally and establishes a connection to the inputted Postgres database. A query tool is exposed, allowing the AI to formulate and execute queries on the database.
+The DX MCP Server is a Python-based tool that lets you interact with your Datacloud database through MCP clients, such as [Claude for Desktop](https://claude.ai/download) and [Cursor](https://www.cursor.com/). The server runs locally and establishes a connection to the inputted Postgres database. A query tool is exposed, allowing the AI to formulate and execute queries on the database.
 
 
 ## Installation
@@ -26,11 +26,11 @@ git clone https://github.com/get-dx/dx-mcp-server
 
 3. Set up the MCP client
 
-Setup instructions will vary depending on the MCP Client. Detailed instructions for Claude Desktop and Cursor are provided below.
+Setup instructions will vary depending on the MCP Client. Detailed instructions on Claude for Desktop and Cursor are provided below.
 
-### Claude Desktop
+### Claude for Desktop
 
-1. From the top of Claude Desktop, click **Claude > Settings > Developer**
+1. From the top of Claude for Desktop, click **Claude > Settings > Developer**
 2. Click **Edit Config**. A configuration file is created at:
 
 - **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
