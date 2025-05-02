@@ -12,13 +12,13 @@ if not DB_URI:
 
 parsed_uri = urlparse(DB_URI)
 db_name = parsed_uri.path.lstrip('/')
-server_title = "DXDC Database Explorer"
+server_title = "DX Data"
 
 mcp = FastMCP(server_title, dependencies=["psycopg"])
 
 
 @mcp.tool()
-def query_data(sql: str) -> str:
+def queryData(sql: str) -> str:
     """
     Execute a SQL query against the PostgreSQL database.
     Always query from information_schema if you are uncertain about which tables and columns to look at.

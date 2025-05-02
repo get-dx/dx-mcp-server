@@ -1,11 +1,11 @@
 # DX MCP Server
 
-<h4>Use natural language to write and execute queries on your organizational data in DX Datacloud!</h4>
+<h4>Use natural language to write and execute queries on your organizational data in DX Data Cloud!</h4>
 
 
 ## About
 
-The DX MCP Server is a Python-based tool that lets you interact with your Datacloud database through MCP clients, such as [Claude for Desktop](https://claude.ai/download) and [Cursor](https://www.cursor.com/). The server runs locally and establishes a connection to the inputted Postgres database. A query tool is exposed, allowing the AI to formulate and execute queries on the database.
+The DX MCP Server is a Python-based tool that lets you interact with your Data Cloud database through MCP clients, such as [Claude for Desktop](https://claude.ai/download) and [Cursor](https://www.cursor.com/). The server runs locally and establishes a connection to the inputted Postgres database. A query tool is exposed, allowing the AI to formulate and execute queries on the database.
 
 
 ## Installation
@@ -40,7 +40,7 @@ Setup instructions will vary depending on the MCP Client. Detailed instructions 
 
 ```bash
 cd dx-mcp-server
-uv run mcp install main.py --name "DXDC Database Explorer" --with psycopg -v DB_URL=YOUR-DB-URL
+uv run mcp install main.py --name "DXDC Data" --with psycopg -v DB_URL=YOUR-DB-URL
 ```
 
 or configured manually (make sure to replace the placeholders `<LOCAL-PATH-TO-CLONED-REPO>` with the path where you downloaded the cloned the repo, and `<YOUR-DB-URL>` with the Postgres database URL).
