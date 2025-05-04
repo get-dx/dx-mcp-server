@@ -10,10 +10,7 @@ readme = "README.md"
 requires-python = ">=3.10"
 license = {text = "MIT"}
 authors = [
-    {name = "DX"}
-]
-maintainers = [
-    {name = "zakhij", email = "zak.hijaouy@getdx.com"}
+    {name = "Zak Hijaouy", email = "zak.hijaouy@getdx.com"}
 ]
 dependencies = [
     "mcp>=1.7.1",
