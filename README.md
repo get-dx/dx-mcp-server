@@ -20,6 +20,8 @@ Install directly using pip:
 pip install dx-mcp-server
 ```
 
+**NOTE**: MCP clients (Claude Desktop, Cursor) need to access the `dx-mcp-server` command from your system PATH. For instance, if you encounter an "externally-managed-environment" error, use `pipx` instead to install the package.
+
 ### Option 2: Use from Source
 
 Simply clone this repository:
@@ -79,3 +81,4 @@ Add the following configuration to the JSON file, adjusting based on your instal
 ### 3. Restart and use
 
 After saving the configuration, restart your MCP client. You should see "DX Data" in the available tools. When you use the database query tool, the client will ask for your approval before proceeding.
+
