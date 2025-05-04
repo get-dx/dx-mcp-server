@@ -1,20 +1,14 @@
 import os
-from typing import Optional
 from urllib.parse import urlparse
 
 import psycopg
 from mcp.server.fastmcp import FastMCP
 
 
-DB_URI = os.environ.get("DB_URL")
-if not DB_URI:
-    raise ValueError("DB_URL environment variable is not set")
+SERVER_NAME = "DX Data Cloud"
+dependencies = ["psycopg"]
 
-parsed_uri = urlparse(DB_URI)
-db_name = parsed_uri.path.lstrip('/')
-server_title = "DX Data"
-
-mcp = FastMCP(server_title, dependencies=["psycopg"])
+mcp = FastMCP(SERVER_NAME, dependencies=dependencies)
 
 
 @mcp.tool()
@@ -28,9 +22,12 @@ def queryData(sql: str) -> str:
     Returns:
         str: Formatted query results or error message
     """
-    try:
-        with psycopg.connect(DB_URI, row_factory=psycopg.rows.tuple_row) as conn:
+    db_uri = os.environ.get("DB_URL")
+    if not db_uri:
+        return "Error: DB_URL environment variable is not set"
 
+    try:
+        with psycopg.connect(db_uri, row_factory=psycopg.rows.tuple_row) as conn:
             with conn.cursor() as cur:
                 cur.execute(sql)
                 
@@ -50,8 +47,4 @@ def queryData(sql: str) -> str:
     except psycopg.Error as e:
         return f"Database Error: {str(e)}"
     except Exception as e:
-        return f"Error executing query: {str(e)}"
-
-
-if __name__ == "__main__":
-    mcp.run()
+        return f"Error executing query: {str(e)}" 

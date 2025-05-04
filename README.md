@@ -10,98 +10,72 @@ The DX MCP Server is a Python-based tool that lets you interact with your Data C
 
 ## Installation
 
-Currently, downloading from source is the only supported installation method. 
+You can use the DX MCP Server in two ways:
 
-1. Install [UV](https://docs.astral.sh/uv/getting-started/installation/), such as via Brew:
+### Option 1: Install from PyPI
+
+Install directly using pip:
 
 ```bash
-brew install uv
+pip install dx-mcp-server
 ```
 
-NOTE: Depending on your UV installation method, there may be issues in your MCP client executing UV. Make sure it's on a path that your MCP client can access.
+### Option 2: Use from Source
 
-2. Clone this repository
+Simply clone this repository:
 
 ```bash
 git clone https://github.com/get-dx/dx-mcp-server
 ```
 
-3. Set up the MCP client
+## Set up the MCP client
 
-Setup instructions will vary depending on the MCP Client. Detailed instructions on Claude for Desktop and Cursor are provided below.
+Both Claude for Desktop and Cursor use JSON configuration files to set up MCP servers. The configuration process is similar for both:
 
-### Claude for Desktop
+### 1. Access the configuration file
 
-1. From the top of Claude for Desktop, click **Claude > Settings > Developer**
-2. Click **Edit Config**. A configuration file is created at:
+- **Claude for Desktop**: Click **Claude > Settings > Developer > Edit Config**
+  - Config location: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+- **Cursor**: Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server**
+  - This directly opens the JSON editor
 
-- **macOS**: `~/Library/Application Support/Claude/claude_desktop_config.json`
-- **Windows**: `%APPDATA%\Claude\claude_desktop_config.json`
+### 2. Add the MCP server configuration
 
-3. Add the MCP server to `claude_desktop_config.json`. This can be automatically set up through MCP's `install` CLI command
+Add the following configuration to the JSON file, adjusting based on your installation method:
 
-```bash
-cd dx-mcp-server
-uv run mcp install main.py --name "DXDC Data" --with psycopg -v DB_URL=YOUR-DB-URL
-```
-
-or configured manually (make sure to replace the placeholders `<LOCAL-PATH-TO-CLONED-REPO>` with the path where you downloaded the cloned the repo, and `<YOUR-DB-URL>` with the Postgres database URL).
-
+#### If you installed via pip:
 
 ```json
 {
   "mcpServers": {
-    "DXDC Database Explorer": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--with",
-        "mcp[cli]",
-        "--with",
-        "psycopg",
-        "mcp",
-        "run",
-        "<LOCAL-PATH-TO-CLONED-REPO>/dx-mcp-server/main.py"
-      ],
+    "DX Data": {
+      "command": "dx-mcp-server",
       "env": {
-        "DB_URL": <YOUR-DB-URL>
+        "DB_URL": "YOUR-DATABASE-URL"
       }
     }
   }
 }
 ```
 
-4. Restart Claude. Now, you should see the MCP server in "Search and Tools" on the bottom-left of the chatbox.
-5. Start prompting! Each time you use a new tool, Claude will ask for your approval before proceeding.
-
-
-### Cursor
-
-1. Open Cursor and click **Cursor > Settings > Cursor Settings > MCP**.
-2. Click **Add new global MCP Server** and add the MCP server to the `mcp.json` file (make sure to replace the placeholders `<LOCAL-PATH-TO-CLONED-REPO>` with the path where you downloaded the cloned the repo, and `<YOUR-DB-URL>` with the Postgres database URL).
+#### If you're using from source:
 
 ```json
 {
   "mcpServers": {
-    "DXDC Database Explorer": {
-      "command": "uv",
-      "args": [
-        "run",
-        "--with",
-        "mcp[cli]",
-        "--with",
-        "psycopg",
-        "mcp",
-        "run",
-        "<LOCAL-PATH-TO-CLONED-REPO>/dx-mcp-server/main.py"
-      ],
+    "DX Data": {
+      "command": "python", # MacOS users may need to instead use the path to the Python executable
+      "args": ["-m", "dx_mcp_server"],
+      "cwd": "/path/to/dx-mcp-server",  # Replace with the path to your cloned repository
       "env": {
-        "DB_URL": <YOUR-DB-URL>
+        "DB_URL": "YOUR-DATABASE-URL"
       }
     }
   }
 }
 ```
 
-3. Now, the MCP server should be displayed in Cursor Settings. Ensure it's toggled on. 
-4. Start prompting!
+
+### 3. Restart and use
+
+After saving the configuration, restart your MCP client. You should see "DX Data" in the available tools. When you use the database query tool, the client will ask for your approval before proceeding.
