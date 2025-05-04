@@ -12,11 +12,13 @@ The DX MCP Server is a Python-based tool that lets you interact with your Data C
 
 Currently, downloading from source is the only supported installation method. 
 
-1. Install UV
+1. Install [UV](https://docs.astral.sh/uv/getting-started/installation/), such as via Brew:
 
 ```bash
 brew install uv
 ```
+
+NOTE: Depending on your UV installation method, there may be issues in your MCP client executing UV. Make sure it's on a path that your MCP client can access.
 
 2. Clone this repository
 
@@ -44,7 +46,7 @@ uv run mcp install main.py --name "DXDC Data" --with psycopg -v DB_URL=YOUR-DB-U
 ```
 
 or configured manually (make sure to replace the placeholders `<LOCAL-PATH-TO-CLONED-REPO>` with the path where you downloaded the cloned the repo, and `<YOUR-DB-URL>` with the Postgres database URL).
-)
+
 
 ```json
 {
