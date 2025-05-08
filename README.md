@@ -10,7 +10,7 @@ The DX MCP Server is a Python-based tool that empowers AI applications, such as 
 
 ## Demo
 
-[![Watch the demo](https://raw.githubusercontent.com/get-dx/dx-mcp-server/main/assets/thumbnail.png)](https://raw.githubusercontent.com/get-dx/dx-mcp-server/main/assets/DX%20MCP%20Demo%20(Claude).mp4)
+https://github.com/user-attachments/assets/c6ce12a5-4562-4b44-b235-2d04871c3142
 
 
 
