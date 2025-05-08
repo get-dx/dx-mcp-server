@@ -19,7 +19,7 @@ https://github.com/user-attachments/assets/c6ce12a5-4562-4b44-b235-2d04871c3142
 
 You can install the DX MCP Server in two ways:
 
-### Option 1: Install from PyPI
+### Option 1: Install from [PyPI](https://pypi.org/project/dx-mcp-server/)
 
 Install directly using pip:
 
