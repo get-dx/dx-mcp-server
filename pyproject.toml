@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dx-mcp-server"
-version = "0.1.0"
+version = "1.0.0"
 description = "Use natural language to write and execute queries on your organizational data in DX Data Cloud"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -14,7 +14,7 @@ authors = [
 ]
 dependencies = [
     "mcp>=1.7.1",
-    "psycopg>=3.0.0",
+    "psycopg[binary]>=3.0.0",
 ]
 
 [project.urls]

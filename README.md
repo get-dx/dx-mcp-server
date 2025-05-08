@@ -5,12 +5,17 @@
 
 ## About
 
-The DX MCP Server is a Python-based tool that lets you interact with your Data Cloud database through MCP clients, such as [Claude for Desktop](https://claude.ai/download) and [Cursor](https://www.cursor.com/). The server runs locally and establishes a connection to the inputted Postgres database. A query tool is exposed, allowing the AI to formulate and execute queries on the database.
+The DX MCP Server is a Python-based tool that empowers AI applications, such as [Claude for Desktop](https://claude.ai/download) and [Cursor](https://www.cursor.com/), to interact with your Data Cloud database. The server runs locally and establishes a connection to the inputted Postgres database, which can be configured on DX's [DB Users settings page](https://app.getdx.com/datacloud/dbusers). A query tool is exposed to the MCP client application, allowing the AI to actively formulate and execute queries on the database. Click [here](https://modelcontextprotocol.io/introduction) to learn more about MCP.
+
+
+## Demo
+
+[![DX MCP Server Demo](https://cdn.loom.com/sessions/thumbnails/c5f906fc3c0b4f98908cebc5b3c78a4a-with-play.gif)](https://www.loom.com/share/c5f906fc3c0b4f98908cebc5b3c78a4a?sid=83cba89f-6cff-4f99-8e86-e4cf6cdd6522)
 
 
 ## Installation
 
-You can use the DX MCP Server in two ways:
+You can install the DX MCP Server in two ways:
 
 ### Option 1: Install from PyPI
 
@@ -20,7 +25,7 @@ Install directly using pip:
 pip install dx-mcp-server
 ```
 
-**NOTE**: MCP clients (Claude Desktop, Cursor) need to access the `dx-mcp-server` command from your system PATH. For instance, if you encounter an "externally-managed-environment" error, use `pipx` instead to install the package.
+**NOTE**: For macOS users: if you encounter an "externally-managed-environment" error, use `pipx` instead to install the package.
 
 ### Option 2: Use from Source
 
@@ -39,7 +44,7 @@ Both Claude for Desktop and Cursor use JSON configuration files to set up MCP se
 - **Claude for Desktop**: Click **Claude > Settings > Developer > Edit Config**
   - Config location: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
 - **Cursor**: Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server**
-  - This directly opens the JSON editor
+  - This directly opens the `mcp.json` file
 
 ### 2. Add the MCP server configuration
 
@@ -51,7 +56,8 @@ Add the following configuration to the JSON file, adjusting based on your instal
 {
   "mcpServers": {
     "DX Data": {
-      "command": "dx-mcp-server",
+      "command": "dx-mcp-server", 
+      "args": ["run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL"
       }
@@ -66,8 +72,8 @@ Add the following configuration to the JSON file, adjusting based on your instal
 {
   "mcpServers": {
     "DX Data": {
-      "command": "python", # MacOS users may need to instead use the path to the Python executable
-      "args": ["-m", "dx_mcp_server"],
+      "command": "python",
+      "args": ["-m", "dx_mcp_server", "run"],
       "cwd": "/path/to/dx-mcp-server",  # Replace with the path to your cloned repository
       "env": {
         "DB_URL": "YOUR-DATABASE-URL"
@@ -82,3 +88,43 @@ Add the following configuration to the JSON file, adjusting based on your instal
 
 After saving the configuration, restart your MCP client. You should see "DX Data" in the available tools. When you use the database query tool, the client will ask for your approval before proceeding.
 
+
+## Troubleshooting
+
+### Path Resolution Issues 
+The most common issue involves the MCP client not finding the `dx-mcp-server`/`python` command, as GUI applications don't inherit the same PATH environment variables as the terminal. The solution is to use the full path to the executable in the json config.
+
+```bash
+# Find the path on macOS/Linux
+which dx-mcp-server
+
+# Find the path on Windows (in Command Prompt)
+where dx-mcp-server
+```
+
+```json
+{
+  "mcpServers": {
+    "DX Data": {
+      "command": "/full/path/to/dx-mcp-server",
+      "args": ["run"],
+      "env": {
+        "DB_URL": "YOUR-DATABASE-URL"
+      }
+    }
+  }
+}
+```
+
+### Checking Logs
+If you're still experiencing issues:
+
+- **Claude Desktop**: Check logs at:
+  - macOS: `~/Library/Logs/Claude/`
+  - Windows: `%APPDATA%\Claude\logs\`
+
+- **Cursor**: Check logs at:
+  - macOS: `~/Library/Application Support/Cursor/logs/[SESSION_ID]`
+  - Windows: `%APPDATA%\Cursor\logs\[SESSION_ID]`
+
+The logs will show any errors that occur when trying to start the MCP server.
