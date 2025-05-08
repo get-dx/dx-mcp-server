@@ -10,7 +10,13 @@ The DX MCP Server is a Python-based tool that empowers AI applications, such as 
 
 ## Demo
 
-[![DX MCP Server Demo](https://cdn.loom.com/sessions/thumbnails/c5f906fc3c0b4f98908cebc5b3c78a4a-with-play.gif)](https://www.loom.com/share/c5f906fc3c0b4f98908cebc5b3c78a4a?sid=83cba89f-6cff-4f99-8e86-e4cf6cdd6522)
+<video width="640" height="360" controls>
+  <source src="assets/videos/DX%20MCP%20Demo%20(Claude).mp4" type="video/mp4">
+  Your browser does not support the video tag.
+</video>
+
+[<img src="https://img.shields.io/badge/▶️%20Watch%20Demo-2.7MB%20MP4-blue?style=for-the-badge" height="30" />](assets/videos/DX%20MCP%20Demo%20(Claude).mp4)
+
 
 
 ## Installation
