@@ -2,7 +2,7 @@
 
 <h4>Use natural language to write and execute queries on your organizational data in DX Data Cloud!</h4>
 
-![DX MCP Server](./Ai%20image%20%281%29.png)
+![AI Query Interface with DX MCP Server](./assets/Ai%20image%20(1).png)
 
 ## About
 
