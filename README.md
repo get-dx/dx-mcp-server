@@ -75,9 +75,8 @@ Add the following configuration to the JSON file, adjusting based on your instal
 {
   "mcpServers": {
     "DX Data": {
-      "command": "python",
-      "args": ["-m", "dx_mcp_server", "run"],
-      "cwd": "/path/to/dx-mcp-server",  # Replace with the path to your cloned repository
+      "command": "uv",
+      "args": ["--directory", "/path/to/dx-mcp-server-repo", "run", "-m", "dx_mcp_server", "run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL"
       }
@@ -95,8 +94,9 @@ After saving the configuration, restart your MCP client. You should see "DX Data
 ## Troubleshooting
 
 ### Path Resolution Issues 
-The most common issue involves the MCP client not finding the `dx-mcp-server`/`python` command, as GUI applications don't inherit the same PATH environment variables as the terminal. The solution is to use the full path to the executable in the json config.
+The most common issue involves the MCP client not finding the `dx-mcp-server`/`uv` command, as GUI applications don't inherit the same PATH environment variables as the terminal. The solution is to use the full path to the executable in the json config.
 
+For pip installations:
 ```bash
 # Find the path on macOS/Linux
 which dx-mcp-server
@@ -111,6 +111,29 @@ where dx-mcp-server
     "DX Data": {
       "command": "/full/path/to/dx-mcp-server",
       "args": ["run"],
+      "env": {
+        "DB_URL": "YOUR-DATABASE-URL"
+      }
+    }
+  }
+}
+```
+
+For source installations:
+```bash
+# Find the path on macOS/Linux
+which uv
+
+# Find the path on Windows (in Command Prompt)
+where uv
+```
+
+```json
+{
+  "mcpServers": {
+    "DX Data": {
+      "command": "/full/path/to/uv",
+      "args": ["--directory", "/path/to/dx-mcp-server-repo", "run", "-m", "dx_mcp_server", "run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL"
       }
