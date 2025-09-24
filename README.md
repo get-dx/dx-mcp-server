@@ -46,6 +46,7 @@ Both Claude for Desktop and Cursor use JSON configuration files to set up MCP se
 
 - **Claude for Desktop**: Click **Claude > Settings > Developer > Edit Config**
   - Config location: `~/Library/Application Support/Claude/claude_desktop_config.json` (macOS) or `%APPDATA%\Claude\claude_desktop_config.json` (Windows)
+- **Claude Code**: Run the command `claude mcp add dx-mcp-server --env DB_URL=YOUR_DB_URL -- $(which dx-mcp-server)`
 - **Cursor**: Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server**
   - This directly opens the `mcp.json` file
 
