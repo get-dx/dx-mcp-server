@@ -14,8 +14,6 @@ COPY src/ ./src/
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
 
-RUN pip install --no-cache-dir -e .
-
 RUN useradd -m -u 1000 mcp && \
     chown -R mcp:mcp /app
 
