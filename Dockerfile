@@ -7,9 +7,7 @@ RUN apt-get update && \
     libpq-dev \
     && rm -rf /var/lib/apt/lists/*
 
-COPY pyproject.toml README.md LICENSE ./
-
-COPY src/ ./src/
+COPY . .
 
 RUN pip install --no-cache-dir --upgrade pip && \
     pip install --no-cache-dir .
