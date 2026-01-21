@@ -7,7 +7,6 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - **Tools**:
-The following tools are available when WEB_API_TOKEN is provided:
   - `listEntities()` - Browse the DX software catalog with pagination and filtering
   - `getEntityDetails()` - Get comprehensive entity information including tasks and scorecards
 
