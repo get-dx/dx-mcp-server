@@ -19,6 +19,8 @@ USER mcp
 
 # Set environment variable placeholder (will be overridden at runtime)
 ENV DB_URL=""
+ENV DX_API_HOST="https://api.getdx.com"
+ENV WEB_API_TOKEN=""
 
 # Expose the entry point
 ENTRYPOINT ["dx-mcp-server"]
