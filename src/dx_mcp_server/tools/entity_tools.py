@@ -3,17 +3,10 @@ import requests
 
 from dx_mcp_server.server import mcp
 
-# DX_API_HOST = environ.get("DX_API_HOST", "https://api.getdx.com")
-DX_API_HOST = "http://localhost:3000"
+DX_API_HOST = environ.get("DX_API_HOST", "https://api.getdx.com")
 WEB_API_TOKEN = environ.get("WEB_API_TOKEN", "")
 
-print(f"WEB_API_TOKEN: {WEB_API_TOKEN}")
-
-WEB_API_TOKEN_ENABLED = bool(WEB_API_TOKEN)
-print(f"WEB_API_TOKEN_ENABLED: {WEB_API_TOKEN_ENABLED}")
-
-
-@mcp.tool(enabled=WEB_API_TOKEN_ENABLED)
+@mcp.tool()
 def listEntities(
     cursor: str = None,
     limit: int = 50,
@@ -27,6 +20,8 @@ def listEntities(
         limit (int, optional): Number of entities per page - if present, must be between 1 and 50.
         type (str, optional): Filter entities by type (e.g., 'service', 'team', etc.).
     """
+    if not WEB_API_TOKEN:
+        return {"error": "WEB_API_TOKEN environment variable is not set"}
 
     params = {}
     if cursor:
@@ -61,7 +56,7 @@ def listEntities(
         return {"error": f"Request failed: {str(e)}"}
 
 
-@mcp.tool(enabled=WEB_API_TOKEN_ENABLED)
+@mcp.tool()
 def getEntityDetails(identifier: str) -> dict:
     """
     Get comprehensive details about a specific entity including its information, tasks, and scorecards - we can use this to check operational readiness/health of an entity.
@@ -71,6 +66,9 @@ def getEntityDetails(identifier: str) -> dict:
     """
     if not identifier:
         return {"error": "identifier is required"}
+
+    if not WEB_API_TOKEN:
+        return {"error": "WEB_API_TOKEN environment variable is not set"}
 
     headers = {
         "Authorization": f"Bearer {WEB_API_TOKEN}",

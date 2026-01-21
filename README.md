@@ -203,7 +203,7 @@ Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server** 
 
 - **`DB_URL`** (required): Your DX Data Cloud Postgres connection string. Get this from [DX DB Users settings](https://app.getdx.com/datacloud/dbusers).
   - Format: `postgresql://username:password@host:port/database`
-- **`WEB_API_TOKEN`** (optional): Your DX Web API Token. This enables additional catalog and entity tools. Find this in your DX account settings.
+- **`WEB_API_TOKEN`**: Your DX Web API Token. This enables additional catalog and entity tools. Find this in your DX account settings.
 
 ### Usage
 
