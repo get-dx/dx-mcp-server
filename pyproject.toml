@@ -4,7 +4,7 @@ build-backend = "hatchling.build"
 
 [project]
 name = "dx-mcp-server"
-version = "1.0.0"
+version = "1.1.0"
 description = "Use natural language to write and execute queries on your organizational data in DX Data Cloud"
 readme = "README.md"
 requires-python = ">=3.10"
@@ -13,8 +13,9 @@ authors = [
     {name = "Zak Hijaouy", email = "zak.hijaouy@getdx.com"}
 ]
 dependencies = [
-    "mcp>=1.7.1",
+    "fastmcp>=2.14.3",
     "psycopg[binary]>=3.0.0",
+    "requests>=2.32.0",
 ]
 
 [project.urls]
@@ -25,3 +26,8 @@ dx-mcp-server = "dx_mcp_server.main:main"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dx_mcp_server"]
+
+[dependency-groups]
+dev = [
+    "black>=26.1.0",
+]
