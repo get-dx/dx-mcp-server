@@ -22,7 +22,7 @@ def listInitiatives(
         cursor (str, optional): Cursor for pagination. Get from response_metadata.next_cursor in prior requests.
         limit (int, optional): Limit the number of initiatives per page. Maximum 100, defaults to 50.
         published (bool, optional): Filter by published status.
-        priority (int, optional): Filter by priority (0-4, lower is higher priority).
+        priority (int, optional): Filter by priority (0-2, lower numbers are more urgent).
         tags (str, optional): Comma-separated tags to filter by.
     """
     if not WEB_API_TOKEN:
