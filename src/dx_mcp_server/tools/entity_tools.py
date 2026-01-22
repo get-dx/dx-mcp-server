@@ -6,6 +6,7 @@ from dx_mcp_server.server import mcp
 DX_API_HOST = environ.get("DX_API_HOST", "https://api.getdx.com")
 WEB_API_TOKEN = environ.get("WEB_API_TOKEN", "")
 
+
 @mcp.tool()
 def listEntities(
     cursor: str = None,
