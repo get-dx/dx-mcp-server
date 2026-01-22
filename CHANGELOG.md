@@ -2,6 +2,22 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.2.0]
+
+### Added
+
+- **Tools**:
+  - `listTeams()` - List all teams in DX
+  - `getTeamDetails()` - Retrieve details for an individual team by team_id, reference_id, or team_emails
+  - `listInitiatives()` - List all initiatives with summary information and filtering options
+  - `getInitiativeDetails()` - Get comprehensive initiative details including info and progress report
+  - `listScorecards()` - List all active scorecards with pagination
+  - `getScorecardInfo()` - Retrieve detailed scorecard information including levels and checks
+  - `reviewTasks()` - Tool for reviewing and resolving outstanding DX tasks/failing checks
+
+- **Prompts**:
+  - `reviewTasks` - Comprehensive workflow prompt for identifying, analyzing, and resolving failing DX scorecard checks with EXECUTE/PLAN/BLOCKED decision framework
+
 ## [1.1.0]
 
 ### Added
