@@ -10,7 +10,7 @@ WEB_API_TOKEN = environ.get("WEB_API_TOKEN", "")
 @mcp.tool()
 def listInitiatives(
     cursor: str = None,
-    limit: int = 50,
+    limit: int = 20,
     published: bool = None,
     priority: int = None,
     tags: str = None,
@@ -68,7 +68,7 @@ def listInitiatives(
 def getInitiativeDetails(
     id: str,
     entity_type_identifiers: str = None,
-    limit: int = 50,
+    limit: int = 20,
     cursor: str = None,
 ) -> dict:
     """
@@ -146,7 +146,7 @@ def getInitiativeDetails(
 
 
 @mcp.tool()
-def listScorecards(cursor: str = None, limit: int = 50) -> dict:
+def listScorecards(cursor: str = None, limit: int = 20) -> dict:
     """
     List all active scorecards.
     Args:
