@@ -2,6 +2,15 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.3.0]
+
+### Changed
+
+- **Performance Improvements**:
+  - Updated default pagination limits from 50 to 20 for `listEntities()`, `listInitiatives()`, `getInitiativeDetails()`, and `listScorecards()` for better performance/reduced payload size
+  - Added `search_term` parameter to `listEntities()` tool to enable efficient entity search and discovery
+  - Updated `reviewTasks` prompt to encourage use of the new search functionality
+
 ## [1.2.0]
 
 ### Added

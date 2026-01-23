@@ -16,13 +16,13 @@ def reviewTasks() -> str:
 - If you cannot fully resolve with available tools/code changes, explain what's missing and propose the next best actions.
 
 ### Tools you'll likely need to use (preferred order)
-- listEntities(): find the right entity if the identifier is unclear.
+- listEntities(search_term=...): find the right entity if the identifier is unclear, use the search_term parameter to find the right entity.
 - getEntityDetails(identifier=...): primary source for the entity's **tasks** (including latest status/results) and **scorecards** including **check definitions/criteria**.
 
 ### Step 1 — Identify the entity
 - If `entity_identifier` is provided: use it.
 - Otherwise infer from context (repo name/cwd if available). If still uncertain:
-  - Call listEntities() and select the best match. If ambiguous, ask 1 question ("Which entity do you mean: A or B?").
+  - Call listEntities(search_term=...) and select the best match. If ambiguous, ask 1 question ("Which entity do you mean: A or B?").
 
 ### Step 2 — Load tasks and discover the target check(s)
 - Call getEntityDetails(identifier=...).

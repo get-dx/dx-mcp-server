@@ -9,28 +9,32 @@ WEB_API_TOKEN = environ.get("WEB_API_TOKEN", "")
 
 @mcp.tool()
 def listEntities(
-    cursor: str = None,
-    limit: int = 50,
+    search_term: str = None,
     type: str = None,
+    cursor: str = None,
+    limit: int = 20,
 ) -> dict:
     """
     List entities from the DX software catalog.
 
     Args:
+        search_term (str, optional): Search term to filter by.
+        type (str, optional): Filter entities by type (e.g., 'service', 'team', etc.).
         cursor (str, optional): Cursor for pagination. Get from response_metadata.next_cursor in prior requests.
         limit (int, optional): Number of entities per page - if present, must be between 1 and 50.
-        type (str, optional): Filter entities by type (e.g., 'service', 'team', etc.).
     """
     if not WEB_API_TOKEN:
         return {"error": "WEB_API_TOKEN environment variable is not set"}
 
     params = {}
+    if search_term:
+        params["search_term"] = search_term
+    if type:
+        params["type"] = type
     if cursor:
         params["cursor"] = cursor
     if limit:
         params["limit"] = limit
-    if type:
-        params["type"] = type
 
     url = f"{DX_API_HOST}/entities.list"
     headers = {
