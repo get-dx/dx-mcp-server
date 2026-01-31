@@ -65,23 +65,6 @@ Add this configuration to your MCP settings (**Cursor > Settings > Cursor Settin
 }
 ```
 
-### Claude for Desktop
-
-Add this configuration via **Claude > Settings > Developer > Edit Config**:
-
-```json
-{
-  "mcpServers": {
-    "dx-mcp": {
-      "url": "https://ai.getdx.com/mcp",
-      "headers": {
-        "Authorization": "Bearer [YOUR_WEB_API_TOKEN]"
-      }
-    }
-  }
-}
-```
-
 ---
 
 ## Option 2: Local Installation
