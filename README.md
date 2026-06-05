@@ -12,6 +12,8 @@ The DX MCP Server is a Python-based tool that empowers AI applications, such as 
 
 Learn more about the [Model Context Protocol (MCP)](https://modelcontextprotocol.io/introduction).
 
+**Note**: DX intends for [the CLI](https://docs.getdx.com/cli/) to become the primary interface for AI agents and is investing in it as the long-term direction beyond the MCP server. Both interfaces remain supported.
+
 ## Demo
 
 https://github.com/user-attachments/assets/c6ce12a5-4562-4b44-b235-2d04871c3142
@@ -27,25 +29,26 @@ There are two ways to use the DX MCP Server:
 - A DX account with access to Data Cloud
 
 - **For remote hosting**: 
-  - A web API token with read scopes granted (found in your [DX account settings](https://app.getdx.com/admin/webapi))
+  - A DX API token, generated in your [DX Account Settings](https://app.getdx.com/settings/user/preferences)
+    - Admin users can create an organization API token with read scopes granted, and non-admin users can generate personal access tokens to authenticate with the MCP server.
 
 - **For local hosting**: 
   - Python 3.10 or higher
   - Your database connection URL (configured on DX's [DB Users settings page](https://app.getdx.com/datacloud/dbusers))
-  - A web API token with read scopes granted (found in your [DX account settings](https://app.getdx.com/admin/webapi))
-
+  - A DX API token, generated in your [DX Account Settings](https://app.getdx.com/settings/user/preferences)
+    - Admin users can create an organization API token with read scopes granted, and non-admin users can generate personal access tokens to authenticate with the MCP server.
 ---
 
 ## Option 1: Remote Hosting (Recommended)
 
-The hosted MCP server uses streamable HTTP transport and is available at `https://ai.getdx.com/mcp`. This option requires no local installation; just configure your AI client with the mcp using http transport and provided with a valid Web API Token.
+The hosted MCP server uses streamable HTTP transport and is available at `https://ai.getdx.com/mcp`. This option requires no local installation; just configure your AI client with the mcp using http transport and provided with a valid DX API Token.
 
 ### Claude Code
 
 Run this command in your terminal:
 
 ```bash
-claude mcp add --transport http dx-mcp https://ai.getdx.com/mcp --header "Authorization: Bearer [YOUR_WEB_API_TOKEN]"
+claude mcp add --transport http dx-mcp https://ai.getdx.com/mcp --header "Authorization: Bearer [YOUR_DX_API_TOKEN]"
 ```
 
 ### Cursor
@@ -58,7 +61,7 @@ Add this configuration to your MCP settings (**Cursor > Settings > Cursor Settin
     "dx-mcp": {
       "url": "https://ai.getdx.com/mcp",
       "headers": {
-        "Authorization": "Bearer [YOUR_WEB_API_TOKEN]"
+        "Authorization": "Bearer [YOUR_DX_API_TOKEN]"
       }
     }
   }
@@ -103,7 +106,7 @@ Run this command in your terminal (adjust based on your installation method):
 
 ```bash
 # If installed via pip/pipx
-claude mcp add dx-mcp-server --env DB_URL=YOUR_DB_URL --env WEB_API_TOKEN=YOUR_TOKEN -- $(which dx-mcp-server)
+claude mcp add dx-mcp-server --env DB_URL=YOUR_DB_URL --env WEB_API_TOKEN=YOUR_DX_API_TOKEN -- $(which dx-mcp-server)
 ```
 
 #### Claude for Desktop
@@ -120,7 +123,7 @@ Click **Claude > Settings > Developer > Edit Config** and add:
       "args": ["run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR_DX_API_TOKEN"
       }
     }
   }
@@ -137,7 +140,7 @@ Click **Claude > Settings > Developer > Edit Config** and add:
       "args": ["--directory", "/path/to/dx-mcp-server", "run", "-m", "dx_mcp_server", "run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR-DX-API-TOKEN"
       }
     }
   }
@@ -158,7 +161,7 @@ Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server** 
       "args": ["run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR-DX-API-TOKEN"
       }
     }
   }
@@ -175,7 +178,7 @@ Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server** 
       "args": ["--directory", "/path/to/dx-mcp-server", "run", "-m", "dx_mcp_server", "run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR-DX-API-TOKEN"
       }
     }
   }
@@ -186,7 +189,7 @@ Click **Cursor > Settings > Cursor Settings > MCP > Add new global MCP Server** 
 
 - **`DB_URL`** (required): Your DX Data Cloud Postgres connection string. Get this from [DX DB Users settings](https://app.getdx.com/datacloud/dbusers).
   - Format: `postgresql://username:password@host:port/database`
-- **`WEB_API_TOKEN`**: Your DX Web API Token. This enables additional catalog and entity tools. Find this in your DX account settings.
+- **`WEB_API_TOKEN`**: Your DX API Token (either an organization token or a personal access token). This enables additional catalog and entity tools. Find this in your DX account settings.
 
 ### Usage
 
@@ -221,7 +224,7 @@ Then use the full path in your configuration:
       "args": ["run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR-DX-API-TOKEN"
       }
     }
   }
@@ -250,7 +253,7 @@ Then use the full path in your configuration:
       "args": ["--directory", "/absolute/path/to/dx-mcp-server", "run", "-m", "dx_mcp_server", "run"],
       "env": {
         "DB_URL": "YOUR-DATABASE-URL",
-        "WEB_API_TOKEN": "YOUR-WEB-API-TOKEN"
+        "WEB_API_TOKEN": "YOUR-DX-API-TOKEN"
       }
     }
   }
