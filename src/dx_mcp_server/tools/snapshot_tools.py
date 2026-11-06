@@ -17,8 +17,6 @@ SCORE_TYPES = {
     "allocation": {"method": "allocationPercentages", "item_param": "question_id"},
 }
 
-DIMENSION_TYPES = ["snapshotTeam", "group", "branch", "attribute"]
-
 
 def _get(method: str, params: dict = None) -> dict:
     """GET a snapshots.* web API method and normalize errors into {"error": ...}."""
@@ -75,9 +73,6 @@ def listSnapshots(ordering: str = None) -> dict:
         ordering (str, optional): Sort newest first by "scheduled_for" or "completed_at".
             Omit for API default ordering.
     """
-    if ordering and ordering not in ("scheduled_for", "completed_at"):
-        return {"error": "ordering must be 'scheduled_for' or 'completed_at'"}
-
     data = _get("snapshots.list", {"ordering": ordering})
     if "error" in data:
         return data
@@ -106,9 +101,6 @@ def listSnapshotTeams(snapshot_id: str) -> dict:
     Args:
         snapshot_id (str): Snapshot ID from listSnapshots.
     """
-    if not snapshot_id:
-        return {"error": "snapshot_id is required"}
-
     data = _get("snapshots.snapshotTeams.list", {"snapshot_id": snapshot_id})
     if "error" in data:
         return data
@@ -134,12 +126,12 @@ def getSnapshotScores(
     Args:
         snapshot_id (str): Snapshot ID from listSnapshots.
         score_type (str): One of:
-            - "driver": developer experience driver scores (snapshots.driverScores)
-            - "workflow": workflow/behavioral question scores (snapshots.workflowScores)
-            - "impact": impact/outcome scores (snapshots.impactScores)
-            - "csat": internal tool satisfaction scores (snapshots.csatScores)
+            - "driver": Drivers of developer experience (snapshots.driverScores)
+            - "workflow": Workflow/behavioral questions (snapshots.workflowScores)
+            - "impact": Impact/outcome scores (snapshots.impactScores)
+            - "csat": Internal tool satisfaction scores (snapshots.csatScores)
             - "dxi": Developer Experience Index and its drivers (snapshots.dxiScores)
-            - "allocation": time allocation percentages (snapshots.allocationPercentages)
+            - "allocation": Time allocation percentages (snapshots.allocationPercentages)
         team_ids (str, optional): Comma-separated team IDs (from listTeams) to filter respondents by.
         snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams).
             Snapshot teams are the org structure captured when the snapshot ran. Combined with team_ids
@@ -149,8 +141,6 @@ def getSnapshotScores(
         branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches).
             DXI scores require the main branch to be included if any branches are given.
     """
-    if not snapshot_id:
-        return {"error": "snapshot_id is required"}
     if score_type not in SCORE_TYPES:
         return {"error": f"score_type must be one of {', '.join(SCORE_TYPES)}"}
 
@@ -200,29 +190,18 @@ def getSnapshotScoresBreakdown(
         parent_snapshot_team_id (str, optional): When dimension_type is "snapshotTeam", only return
             the children of this snapshot team (from listSnapshotTeams).
         team_ids (str, optional): Comma-separated team IDs (from listTeams) to filter respondents by.
-        snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams).
-            Snapshot teams are the org structure captured when the snapshot ran. Combined with team_ids
-            as an intersection.
-        group_ids (str, optional): Comma-separated frontline user group IDs.
-        attribute_ids (str, optional): Comma-separated attribute (tag) IDs.
-        branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches).
-            DXI scores require the main branch to be included if any branches are given.
+        snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams)
+            to filter respondents by. Snapshot teams are the org structure captured when the snapshot
+            ran. Combined with team_ids as an intersection.
+        group_ids (str, optional): Comma-separated frontline user group IDs to filter respondents by.
+        attribute_ids (str, optional): Comma-separated attribute (tag) IDs to filter respondents by.
+        branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches)
+            to filter respondents by. DXI scores require the main branch to be included if any branches are given.
     """
-    if not snapshot_id:
-        return {"error": "snapshot_id is required"}
     if score_type not in SCORE_TYPES:
         return {"error": f"score_type must be one of {', '.join(SCORE_TYPES)}"}
-    if dimension_type not in DIMENSION_TYPES:
-        return {"error": f"dimension_type must be one of {', '.join(DIMENSION_TYPES)}"}
 
     score = SCORE_TYPES[score_type]
-    if score["item_param"] and not item_id:
-        return {"error": f"item_id is required for score_type '{score_type}'"}
-    if dimension_type == "attribute" and not attribute_group_id:
-        return {
-            "error": "attribute_group_id is required when dimension_type is 'attribute'"
-        }
-
     method = f"snapshots.{score['method']}.breakdown"
     params = _filter_params(
         snapshot_id, team_ids, snapshot_team_ids, group_ids, attribute_ids, branch_ids

@@ -6,9 +6,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 ### Added
 
-- **Tools** (snapshot survey results via the web API, require `WEB_API_TOKEN` with `snapshots:read` scope):
+- **Tools**:
   - `listSnapshots()` - List completed snapshots with participation counts
-  - `listSnapshotBranches()` - List snapshot branches (survey variants by audience)
+  - `listSnapshotBranches()` - List snapshot branches
   - `listSnapshotTeams()` - List the teams captured in a snapshot with manager and hierarchy fields
   - `getSnapshotScores()` - Aggregate driver, workflow, impact, CSAT, DXI, or allocation scores for a snapshot, filterable by teams, snapshot teams, groups, attributes, and branches
   - `getSnapshotScoresBreakdown()` - Break a single score down by snapshot team, group, branch, or attribute value
