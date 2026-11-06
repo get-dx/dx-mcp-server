@@ -2,6 +2,17 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.4.0]
+
+### Added
+
+- **Tools**:
+  - `listSnapshots()` - List completed snapshots with participation counts
+  - `listSnapshotBranches()` - List snapshot branches
+  - `listSnapshotTeams()` - List the teams captured in a snapshot with manager and hierarchy fields
+  - `getSnapshotScores()` - Aggregate driver, workflow, impact, CSAT, DXI, or allocation scores for a snapshot, filterable by teams, snapshot teams, groups, attributes, and branches
+  - `getSnapshotScoresBreakdown()` - Break a single score down by snapshot team, group, branch, or attribute value
+
 ## [1.3.0]
 
 ### Changed

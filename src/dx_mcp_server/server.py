@@ -8,6 +8,7 @@ from dx_mcp_server.tools import entity_tools
 from dx_mcp_server.tools import data_tools
 from dx_mcp_server.tools import scorecard_tools
 from dx_mcp_server.tools import team_tools
+from dx_mcp_server.tools import snapshot_tools
 
 # Prompts
 from dx_mcp_server.prompts import scorecard_prompts
