@@ -31,7 +31,7 @@ def _get(method: str, params: dict = None) -> dict:
     params = {k: v for k, v in (params or {}).items() if v not in (None, "")}
 
     try:
-        response = requests.get(url, params=params, headers=headers)
+        response = requests.get(url, params=params, headers=headers, timeout=30)
         try:
             data = response.json()
         except ValueError:
@@ -53,6 +53,17 @@ def _get(method: str, params: dict = None) -> dict:
 def _filter_params(
     snapshot_id, team_ids, snapshot_team_ids, group_ids, attribute_ids, branch_ids
 ) -> dict:
+    """
+    Args:
+        team_ids (str, optional): Comma-separated team IDs (from listTeams) to filter respondents by.
+        snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams)
+            to filter respondents by. Snapshot teams are the org structure captured when the snapshot
+            ran. Combined with team_ids as an intersection.
+        group_ids (str, optional): Comma-separated frontline user group IDs to filter respondents by.
+        attribute_ids (str, optional): Comma-separated attribute (tag) IDs to filter respondents by.
+        branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches)
+            to filter respondents by. DXI scores require the main branch to be included if any branches are given.
+    """
     return {
         "snapshot_id": snapshot_id,
         "team_ids": team_ids,
@@ -132,14 +143,12 @@ def getSnapshotScores(
             - "csat": Internal tool satisfaction scores (snapshots.csatScores)
             - "dxi": Developer Experience Index and its drivers (snapshots.dxiScores)
             - "allocation": Time allocation percentages (snapshots.allocationPercentages)
-        team_ids (str, optional): Comma-separated team IDs (from listTeams) to filter respondents by.
-        snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams).
-            Snapshot teams are the org structure captured when the snapshot ran. Combined with team_ids
-            as an intersection.
-        group_ids (str, optional): Comma-separated frontline user group IDs.
-        attribute_ids (str, optional): Comma-separated attribute (tag) IDs.
-        branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches).
-            DXI scores require the main branch to be included if any branches are given.
+        Optional filters (see _filter_params for details):
+            - team_ids
+            - snapshot_team_ids
+            - group_ids
+            - attribute_ids
+            - branch_ids (DXI scores require the main branch to be included if any branches are given)
     """
     if score_type not in SCORE_TYPES:
         return {"error": f"score_type must be one of {', '.join(SCORE_TYPES)}"}
@@ -189,15 +198,14 @@ def getSnapshotScoresBreakdown(
             attribute group whose values become the rows.
         parent_snapshot_team_id (str, optional): When dimension_type is "snapshotTeam", only return
             the children of this snapshot team (from listSnapshotTeams).
-        team_ids (str, optional): Comma-separated team IDs (from listTeams) to filter respondents by.
-        snapshot_team_ids (str, optional): Comma-separated snapshot team IDs (from listSnapshotTeams)
-            to filter respondents by. Snapshot teams are the org structure captured when the snapshot
-            ran. Combined with team_ids as an intersection.
-        group_ids (str, optional): Comma-separated frontline user group IDs to filter respondents by.
-        attribute_ids (str, optional): Comma-separated attribute (tag) IDs to filter respondents by.
-        branch_ids (str, optional): Comma-separated snapshot branch IDs (from listSnapshotBranches)
-            to filter respondents by. DXI scores require the main branch to be included if any branches are given.
+        Optional filters (see _filter_params for details):
+            - team_ids
+            - snapshot_team_ids
+            - group_ids
+            - attribute_ids
+            - branch_ids (DXI scores require the main branch to be included if any branches are given)
     """
+    # validate score_type locally because it is used to build the method name
     if score_type not in SCORE_TYPES:
         return {"error": f"score_type must be one of {', '.join(SCORE_TYPES)}"}
 
