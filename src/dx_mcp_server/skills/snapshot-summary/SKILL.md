@@ -20,6 +20,12 @@ If there is only one snapshot, skip all comparisons and say so.
 - Workflows: `getSnapshotScores(snapshot_id, "workflow")` for both snapshots.
 - Comments: `getSnapshotComments(snapshot_id)` for the latest snapshot. Follow `next_cursor` for at most 3 pages. Group comments by `driver_name`.
 
+### Scoping to a team
+
+If the user asks about one team, for example a manager asking about their own team, scope the scores to it. Find the team with `listTeams`, then pass its `team_ids` filter to every `getSnapshotScores` call for both snapshots. Team ids are stable across snapshots, so use them rather than snapshot team ids. Compare the team with the comparison snapshot, the org and the benchmarks, but keep the story about what that team can discuss and influence.
+
+`getSnapshotComments` cannot be filtered by team. Say that the comment themes are org-wide, or leave them out if they would mislead.
+
 ## 3. Handle thin data
 
 A result with `hidden: true` is below the response threshold. Never treat it as zero. Leave it out of rankings. Also treat rows with very few responses as inconclusive and do not draw conclusions from them. Mention hidden or thin results only when they limit something you are reporting.
@@ -36,14 +42,14 @@ A result with `hidden: true` is below the response threshold. Never treat it as 
 2. Look for a workflow that measures the same friction. For example Deep work with interruption frequency, or Code review with review wait time. Use it as supporting numbers, or to rule a cause out.
 3. If something obviously needs a deeper look, such as a big drop that may sit in one team, use `getSnapshotScoresBreakdown` with `snapshotTeam` or another dimension. Teams below the response threshold come back hidden. Note that only if it limits the answer.
 
-If none of these explains it, say the data does not explain it.
+If none of these explains it, say the data does not explain it. Do not state a root cause the data does not support. Say what the team could ask about instead. When you dig into a result, say whether it looks org-wide or specific to one team.
 
 ## 5. Write the summary
 
 Use these headings in this order. Keep it short and plain.
 
 1. **Context**: snapshot date, number of responses, number of responses in the comparison snapshot, and the comparison snapshot date. State the counts only. Add a line of comment only when participation changed a lot.
-2. **Summary**: two or three sentences on how the org did against the benchmark. Give the DXI score and its change from the comparison snapshot. Give the numbers.
+2. **Summary**: two or three sentences on how the org did against the benchmark. Give the DXI score and its change from the comparison snapshot. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
 3. **What moved**: split into **Gains** and **Drops**, with the change in points for each. For each big drop, say why. Then the workflows furthest from p50, with their units.
 4. **What people are saying**: the few themes that matter most, most common first. See the rules below.
 
@@ -64,4 +70,5 @@ The comments should add something the scores do not already show. Do not repeat 
 - Say which two snapshots you compared at the top.
 - Report only what the data shows. Use comments to explain scores, not to override them.
 - If comments are unavailable, say so and write a scores-only summary.
-- Do not give recommendations unless the user asks.
+- Protect anonymity. Do not over-interpret comments or scores from small groups, and treat low-response rows as inconclusive.
+- Do not give recommendations unless the user asks. If they ask for next steps, give up to three. Tie each to a driver or workflow, and give a next step and the metric to check in the next snapshot. Separate what the team can do itself from what needs help from outside the team.
