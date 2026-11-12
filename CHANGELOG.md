@@ -2,6 +2,17 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [Unreleased]
+
+### Added
+
+- **Tools**:
+  - `getSnapshotComments()` - Driver comments for a snapshot, newest first, with commenter emails removed
+- **Skills**:
+  - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`
+- **Prompts**:
+  - `summarizeSnapshot` - Runs the `snapshot-summary` skill
+
 ## [1.4.0]
 
 ### Added

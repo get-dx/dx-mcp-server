@@ -12,5 +12,12 @@ from dx_mcp_server.tools import snapshot_tools
 
 # Prompts
 from dx_mcp_server.prompts import scorecard_prompts
+from dx_mcp_server.prompts import snapshot_prompts
+
+# Skills (served as skill:// resources)
+from pathlib import Path
+from fastmcp.server.providers.skills import SkillsDirectoryProvider
+
+mcp.add_provider(SkillsDirectoryProvider(Path(__file__).parent / "skills"))
 
 # Resources

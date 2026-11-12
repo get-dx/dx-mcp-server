@@ -228,3 +228,32 @@ def getSnapshotScoresBreakdown(
         "filters": data.get("filters"),
         "results": data.get("results", []),
     }
+
+
+@mcp.tool()
+def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) -> dict:
+    """
+    Get driver comments left by respondents in a snapshot, newest first. Only comments on drivers
+    the respondent marked important are returned, and the API applies the token's comment
+    visibility rules. Commenter identities are removed. There are no driver or team filters:
+    group the results by driver_name yourself.
+
+    Args:
+        snapshot_id (str): Snapshot ID from listSnapshots.
+        limit (int, optional): Comments per page, 1 to 100. Defaults to 100.
+        cursor (str, optional): next_cursor from the previous page. Omit for the first page.
+    """
+    data = _get(
+        "snapshots.driverComments.list",
+        {"id": snapshot_id, "limit": limit, "cursor": cursor},
+    )
+    if "error" in data:
+        return data
+    comments = [
+        {k: v for k, v in comment.items() if k != "email"}
+        for comment in data.get("comments", [])
+    ]
+    return {
+        "comments": comments,
+        "next_cursor": (data.get("response_metadata") or {}).get("next_cursor"),
+    }
