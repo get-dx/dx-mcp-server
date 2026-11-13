@@ -354,7 +354,7 @@ def _index_rows(results: list, score: dict) -> dict:
             "hidden": bool(r.get("hidden")),
             "respondents": score["respondents"](r),
             "distribution": r.get("distribution"),
-            "benchmark_p_50": (item.get("benchmark") or {}).get("p_50"),
+            "benchmark_p_75": (item.get("benchmark") or {}).get("p_75"),
             "unit": item.get("unit"),
             "lower_is_better": bool(item.get("lower_is_better")),
         }
@@ -386,14 +386,14 @@ def compareSnapshotScores(
     Each result has: id, name, score, previous_score, change (score - previous_score), direction
     ("better", "worse" or "flat", taking lower_is_better into account), respondents (for drivers
     this excludes "I don't know / N/A" answers), distribution (the current snapshot's answer
-    counts), benchmark_p_50, vs_p_50 (score - benchmark_p_50, or null if no benchmark), unit, and
+    counts), benchmark_p_75, vs_p_75 (score - benchmark_p_75, or null if no benchmark), unit, and
     lower_is_better. Without a comparison snapshot, previous_score, change and direction are null.
     Results are sorted by change, largest increase first, or by name when there is no comparison.
 
     "dxi" returns one row per scale (dxi_five_point, dxi_three_point). "allocation" returns one
     row per allocation item, with the item's percentage as the score and unit "%"; its direction
     is null because a shift in time allocation is not better or worse on its own. "csat" and
-    "allocation" have no benchmark, so vs_p_50 is null.
+    "allocation" have no benchmark, so vs_p_75 is null.
 
     Args:
         snapshot_id (str): The current snapshot ID from listSnapshots.
@@ -449,13 +449,13 @@ def compareSnapshotScores(
             else:
                 direction = "worse"
 
-        p50 = row["benchmark_p_50"]
+        p75 = row["benchmark_p_75"]
         result = {
             **row,
             "previous_score": prev["score"] if prev else None,
             "change": change,
             "direction": direction,
-            "vs_p_50": round(row["score"] - p50, 2) if p50 is not None else None,
+            "vs_p_75": round(row["score"] - p75, 2) if p75 is not None else None,
         }
         del result["hidden"]
         results.append(result)

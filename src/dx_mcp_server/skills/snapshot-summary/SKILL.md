@@ -3,7 +3,7 @@ name: snapshot-summary
 description: Summarize the results of the latest completed DX snapshot for a leader or manager, org-wide or for one team. Use when the user asks for snapshot results, a snapshot summary, how the org or their team scored, what changed since the last snapshot, or what developers are saying in snapshot comments. Do not use for a one-off question about a single score or driver; call the snapshot tools directly instead.
 metadata:
   author: DX
-  version: 1.2.0
+  version: 1.1.0
   mcp-server: dx-mcp-server
 ---
 
@@ -19,7 +19,7 @@ If there is only one snapshot, skip all comparisons and say so.
 
 ## 2. Collect data
 
-Use `compareSnapshotScores(snapshot_id, score_type, comparison_snapshot_id)` for scores. It matches items by id, computes `change`, `direction` and `vs_p_50`, includes each item's `distribution`, and lists hidden and unmatched items separately. Prefer it over working these out by hand. If there is no comparison snapshot, call it without `comparison_snapshot_id`.
+Use `compareSnapshotScores(snapshot_id, score_type, comparison_snapshot_id)` for scores. It matches items by id, computes `change`, `direction` and `vs_p_75`, includes each item's `distribution`, and lists hidden and unmatched items separately. Prefer it over working these out by hand. If there is no comparison snapshot, call it without `comparison_snapshot_id`.
 
 - Headline: `compareSnapshotScores(..., "dxi")`. This returns one row per scale (`dxi_five_point`, `dxi_three_point`). Report the scale that has a score in both snapshots.
 - Drivers: `compareSnapshotScores(..., "driver")`.
@@ -43,9 +43,9 @@ Items in the `hidden` list are below the response threshold or had no rated answ
 
 **Drivers.** The driver results include drivers from every survey branch, and some names repeat with different ids. From the `compareSnapshotScores` results, keep only drivers with a meaningful number of `respondents`. The results are sorted by `change`, so take the 3 biggest gains from the top and the 3 biggest drops from the bottom. Drivers in `hidden`, `only_in_current` or `only_in_comparison` are already excluded.
 
-**Workflows.** Each workflow has its own `unit`, so never add, average or rank workflows against each other or against drivers. Use `direction` and `vs_p_50`, which already account for `lower_is_better`. Report the workflows furthest on the wrong side of p50, and show the `change` in the workflow's own unit. Also flag a workflow whose `distribution` is mostly in the worst options, even if its score looks fine. Note workflows in `only_in_current` or `only_in_comparison` as not asked in both snapshots.
+**Workflows.** Each workflow has its own `unit`, so never add, average or rank workflows against each other or against drivers. Use `direction` and `vs_p_75`, which already account for `lower_is_better`. Report the workflows furthest on the wrong side of p75, and show the `change` in the workflow's own unit. Also flag a workflow whose `distribution` is mostly in the worst options, even if its score looks fine. Note workflows in `only_in_current` or `only_in_comparison` as not asked in both snapshots.
 
-**Impact.** These are outcomes, not causes. Report each against p50 and its change, using `direction` since Weekly time loss is lower-is-better. Flag an impact whose `distribution` has notable weight in the worst options.
+**Impact.** These are outcomes, not causes. Report each against p75 and its change, using `direction` since Weekly time loss is lower-is-better. Flag an impact whose `distribution` has notable weight in the worst options.
 
 **Tools.** CSAT has no benchmark. Report the lowest-scoring tools and the biggest changes. Tools only some people use have few `respondents`, so check that before reporting one. Use a tool score to explain a driver where they overlap, for example an observability tool with Production debugging.
 
@@ -65,7 +65,7 @@ Use these headings in this order. Keep it short and plain.
 
 1. **Context**: snapshot date, number of responses, number of responses in the comparison snapshot, and the comparison snapshot date.
 2. **Summary**: One paragraph on how the org did. Give the DXI score and its change from the comparison snapshot, the impact scores against the benchmark, how the drivers did against the benchmark, and the time allocation split with its shift. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
-3. **What moved**: split into **Gains** and **Drops**, with the change in points for each. For each big drop, say why. Then the workflows furthest from p50, with their units.
+3. **What moved**: split into **Gains** and **Drops**, with the change in points for each. For each big drop, say why. Then the workflows furthest from p75, with their units.
 4. **Tools**: the lowest-scoring tools and the biggest changes, with respondent counts. Leave this heading out if the snapshot has no CSAT items.
 5. **What people are saying**: the few themes that matter most, largest first. See the rules below.
 
