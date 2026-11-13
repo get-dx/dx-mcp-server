@@ -2,6 +2,22 @@
 
 This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.html).
 
+## [1.5.0]
+
+### Added
+
+- **Tools**:
+  - `getSnapshotComments()` - Driver comments for a snapshot, newest first, with commenter identities removed
+  - `compareSnapshotScores()` - DXI, driver, workflow, impact, CSAT, or allocation scores for a snapshot with the change from an optional comparison snapshot, matched by id, plus direction and, where there is a benchmark, distance from p75
+- **Skills**:
+  - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`. Uses `compareSnapshotScores()` for the arithmetic
+- **Prompts**:
+  - `summarizeSnapshot` - Runs the `snapshot-summary` skill, with an optional `team` argument
+
+### Changed
+
+- Requires `fastmcp>=4.1.1` (was `>=2.14.3`) for the skills provider that serves `skill://` resources
+
 ## [1.4.0]
 
 ### Added
