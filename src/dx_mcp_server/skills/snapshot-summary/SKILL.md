@@ -22,7 +22,7 @@ If there is only one snapshot, skip all comparisons and say so.
 
 ### Scoping to a team
 
-If the user asks about one team, for example a manager asking about their own team, scope the scores to it. Find the team with `listTeams`, then pass its `team_ids` filter to every `getSnapshotScores` call for both snapshots. Team ids are stable across snapshots, so use them rather than snapshot team ids. Compare the team with the comparison snapshot, the org and the benchmarks, but keep the story about what that team can discuss and influence.
+If the user asks about one team, or the request names a team, for example a manager asking about their own team, scope the scores to it. Find the team with `listTeams`, then pass its `team_ids` filter to every `getSnapshotScores` call for both snapshots. Team ids are stable across snapshots, so use them rather than snapshot team ids. Compare the team with the comparison snapshot, the org and the benchmarks, but keep the story about what that team can discuss and influence.
 
 `getSnapshotComments` cannot be filtered by team. Say that the comment themes are org-wide, or leave them out if they would mislead.
 

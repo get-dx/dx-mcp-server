@@ -11,7 +11,7 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 - **Skills**:
   - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`
 - **Prompts**:
-  - `summarizeSnapshot` - Runs the `snapshot-summary` skill
+  - `summarizeSnapshot` - Runs the `snapshot-summary` skill, with an optional `team` argument
 
 ## [1.4.0]
 
