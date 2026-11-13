@@ -14,16 +14,50 @@ def _dxi_item(r: dict) -> dict:
 
 
 def _rated_answers(r: dict) -> int:
-    """Driver respondents: count answers, leaving out "I don't know / N/A"."""
+    """Driver and CSAT respondents: count answers, leaving out "I don't know / N/A"."""
     return sum(
         v for k, v in (r.get("distribution") or {}).items() if k != "idk_na_count"
     )
+
+
+def _impact_respondents(r: dict) -> int:
+    """Impact respondents: the distribution is a list of options; N/A has a null value."""
+    return sum(
+        d.get("count") or 0
+        for d in (r.get("distribution") or [])
+        if d.get("value") is not None
+    )
+
+
+def _allocation_rows(results: list) -> list:
+    """Allocation results are one row per question with nested items; flatten to one row per
+    item so items can be matched by id across snapshots. The percentage becomes the score.
+    """
+    rows = []
+    for q in results:
+        for item in q.get("items") or []:
+            rows.append(
+                {
+                    "item": {
+                        "id": item.get("id"),
+                        "name": item.get("name"),
+                        "bucket": item.get("bucket"),
+                        "unit": "%",
+                    },
+                    "score": item.get("percentage"),
+                    "hidden": q.get("hidden"),
+                    "total_respondents": q.get("total_respondents"),
+                }
+            )
+    return rows
 
 
 # Score types supported by the snapshots.*Scores and snapshots.*.breakdown web API methods.
 # Each maps to the API method prefix and the name of the item id param its breakdown expects.
 # Types that compareSnapshotScores supports also say how to read a result row: "item" returns
 # the scored item (id, name, benchmark, ...) and "respondents" returns the respondent count.
+# "rows", when present, reshapes the API results into one row per scored item first, and
+# "directional": False marks types where a change is neither better nor worse.
 SCORE_TYPES = {
     "driver": {
         "method": "driverScores",
@@ -37,15 +71,32 @@ SCORE_TYPES = {
         "item": lambda r: r.get("workflow") or {},
         "respondents": lambda r: r.get("total_respondents"),
     },
-    "impact": {"method": "impactScores", "item_param": "impact_id"},
-    "csat": {"method": "csatScores", "item_param": "csat_id"},
+    "impact": {
+        "method": "impactScores",
+        "item_param": "impact_id",
+        "item": lambda r: r.get("impact") or {},
+        "respondents": _impact_respondents,
+    },
+    "csat": {
+        "method": "csatScores",
+        "item_param": "csat_id",
+        "item": lambda r: r.get("csat") or {},
+        "respondents": _rated_answers,
+    },
     "dxi": {
         "method": "dxiScores",
         "item_param": None,
         "item": _dxi_item,
         "respondents": lambda r: r.get("total_respondents"),
     },
-    "allocation": {"method": "allocationPercentages", "item_param": "question_id"},
+    "allocation": {
+        "method": "allocationPercentages",
+        "item_param": "question_id",
+        "rows": _allocation_rows,
+        "item": lambda r: r.get("item") or {},
+        "respondents": lambda r: r.get("total_respondents"),
+        "directional": False,
+    },
 }
 COMPARABLE_SCORE_TYPES = [t for t, score in SCORE_TYPES.items() if "item" in score]
 
@@ -265,10 +316,9 @@ def getSnapshotScoresBreakdown(
 @mcp.tool()
 def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) -> dict:
     """
-    Get driver comments left by respondents in a snapshot, newest first. Only comments on drivers
-    the respondent marked important are returned, and the API applies the token's comment
-    visibility rules. Commenter identities are removed. There are no driver or team filters:
-    group the results by driver_name yourself.
+    Get driver comments left by respondents in a snapshot, newest first. The API applies the
+    token's comment visibility rules. Commenter identities are removed. There are no driver
+    or team filters, so group the results by driver_name yourself.
 
     Args:
         snapshot_id (str): Snapshot ID from listSnapshots.
@@ -295,7 +345,7 @@ def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) 
 def _index_rows(results: list, score: dict) -> dict:
     """Index getSnapshotScores results by item id, in the shape compareSnapshotScores returns."""
     rows = {}
-    for r in results:
+    for r in score.get("rows", lambda rs: rs)(results):
         item = score["item"](r)
         rows[item.get("id")] = {
             "id": item.get("id"),
@@ -328,8 +378,7 @@ def compareSnapshotScores(
 ) -> dict:
     """
     Normalize one score type for a snapshot and, if a comparison snapshot is given, compute the
-    change from it. Items are matched by id (not name, since branch variants reuse names) and the
-    arithmetic is done here so it does not have to be done by hand. Rows hidden in either
+    change from it. Arithmetic is done here so it does not have to be done by hand. Rows hidden in either
     snapshot, or with no score in the current one, are listed under hidden; rows present in
     only one snapshot are listed under only_in_current or only_in_comparison. Both are left
     out of results.
@@ -341,13 +390,14 @@ def compareSnapshotScores(
     lower_is_better. Without a comparison snapshot, previous_score, change and direction are null.
     Results are sorted by change, largest increase first, or by name when there is no comparison.
 
-    "dxi" returns one row per scale (dxi_five_point, dxi_three_point). DXI has no benchmark, so
-    its benchmark_p_50 and vs_p_50 are null; use "driver" results for benchmark comparisons.
+    "dxi" returns one row per scale (dxi_five_point, dxi_three_point). "allocation" returns one
+    row per allocation item, with the item's percentage as the score and unit "%"; its direction
+    is null because a shift in time allocation is not better or worse on its own. "csat" and
+    "allocation" have no benchmark, so vs_p_50 is null.
 
     Args:
         snapshot_id (str): The current snapshot ID from listSnapshots.
-        score_type (str): One of "driver", "workflow", "dxi". Other score types are not
-            supported yet.
+        score_type (str): One of "driver", "workflow", "impact", "csat", "dxi", "allocation".
         comparison_snapshot_id (str, optional): An earlier snapshot ID to compare against.
         Optional filters, applied to both snapshots (see _filter_params for details):
             - team_ids
@@ -390,7 +440,9 @@ def compareSnapshotScores(
         change = direction = None
         if prev and prev["score"] is not None:
             change = round(row["score"] - prev["score"], 2)
-            if change == 0:
+            if not SCORE_TYPES[score_type].get("directional", True):
+                direction = None
+            elif change == 0:
                 direction = "flat"
             elif (change < 0) == row["lower_is_better"]:
                 direction = "better"

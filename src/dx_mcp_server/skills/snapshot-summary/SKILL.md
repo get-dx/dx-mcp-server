@@ -3,7 +3,7 @@ name: snapshot-summary
 description: Summarize the results of the latest completed DX snapshot for a leader or manager, org-wide or for one team. Use when the user asks for snapshot results, a snapshot summary, how the org or their team scored, what changed since the last snapshot, or what developers are saying in snapshot comments. Do not use for a one-off question about a single score or driver; call the snapshot tools directly instead.
 metadata:
   author: DX
-  version: 1.1.0
+  version: 1.2.0
   mcp-server: dx-mcp-server
 ---
 
@@ -24,6 +24,9 @@ Use `compareSnapshotScores(snapshot_id, score_type, comparison_snapshot_id)` for
 - Headline: `compareSnapshotScores(..., "dxi")`. This returns one row per scale (`dxi_five_point`, `dxi_three_point`). Report the scale that has a score in both snapshots.
 - Drivers: `compareSnapshotScores(..., "driver")`.
 - Workflows: `compareSnapshotScores(..., "workflow")`.
+- Impact: `compareSnapshotScores(..., "impact")`. Outcome measures such as Speed, Quality, Ease of delivery and Weekly time loss. Weekly time loss has `lower_is_better` set.
+- Tools: `compareSnapshotScores(..., "csat")`. Satisfaction with internal tools and processes. No benchmark.
+- Allocation: `compareSnapshotScores(..., "allocation")`. One row per allocation item, with the percentage of time as the score. No benchmark, and `direction` is null because a shift is not better or worse on its own.
 - Comments: `getSnapshotComments(snapshot_id)` for the latest snapshot. Follow `next_cursor` for more pages. Group comments by `driver_name`.
 
 ### Scoping to a team
@@ -42,10 +45,16 @@ Items in the `hidden` list are below the response threshold or had no rated answ
 
 **Workflows.** Each workflow has its own `unit`, so never add, average or rank workflows against each other or against drivers. Use `direction` and `vs_p_50`, which already account for `lower_is_better`. Report the workflows furthest on the wrong side of p50, and show the `change` in the workflow's own unit. Also flag a workflow whose `distribution` is mostly in the worst options, even if its score looks fine. Note workflows in `only_in_current` or `only_in_comparison` as not asked in both snapshots.
 
+**Impact.** These are outcomes, not causes. Report each against p50 and its change, using `direction` since Weekly time loss is lower-is-better. Flag an impact whose `distribution` has notable weight in the worst options.
+
+**Tools.** CSAT has no benchmark. Report the lowest-scoring tools and the biggest changes. Tools only some people use have few `respondents`, so check that before reporting one. Use a tool score to explain a driver where they overlap, for example an observability tool with Production debugging.
+
+**Allocation.** Report the split, for example new features against KTLO, and how it shifted in percentage points. Do not call a shift better or worse unless the drivers or comments support it.
+
 **Why.** To explain a big driver drop, do these in order:
 
 1. Read the comments for that driver.
-2. Look for a workflow that measures the same friction. For example Deep work with interruption frequency, or Code review with review wait time. Use it as supporting numbers, or to rule a cause out.
+2. Look for a workflow or tool that measures the same friction. For example Deep work with interruption frequency, or Code review with review wait time. Use it as supporting numbers, or to rule a cause out.
 3. If something needs a deeper look, such as a big drop that may sit in one team, use `getSnapshotScoresBreakdown` with `snapshotTeam` or another dimension.
 
 If none of these explains it, say the data does not explain it. Do not state a root cause the data does not support. Say what the team could ask about instead. When you dig into a result, say whether it looks org-wide or specific to one team.
@@ -55,9 +64,10 @@ If none of these explains it, say the data does not explain it. Do not state a r
 Use these headings in this order. Keep it short and plain.
 
 1. **Context**: snapshot date, number of responses, number of responses in the comparison snapshot, and the comparison snapshot date.
-2. **Summary**: One paragraph on how the org did. Give the DXI score and its change from the comparison snapshot, and how the drivers did against the benchmark. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
+2. **Summary**: One paragraph on how the org did. Give the DXI score and its change from the comparison snapshot, the impact scores against the benchmark, how the drivers did against the benchmark, and the time allocation split with its shift. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
 3. **What moved**: split into **Gains** and **Drops**, with the change in points for each. For each big drop, say why. Then the workflows furthest from p50, with their units.
-4. **What people are saying**: the few themes that matter most, largest first. See the rules below.
+4. **Tools**: the lowest-scoring tools and the biggest changes, with respondent counts. Leave this heading out if the snapshot has no CSAT items.
+5. **What people are saying**: the few themes that matter most, largest first. See the rules below.
 
 ## Comment themes
 
