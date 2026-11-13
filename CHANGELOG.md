@@ -7,11 +7,15 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 ### Added
 
 - **Tools**:
-  - `getSnapshotComments()` - Driver comments for a snapshot, newest first, with commenter emails removed
+  - `getSnapshotComments()` - Driver comments for a snapshot, newest first, with commenter identities removed
 - **Skills**:
   - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`
 - **Prompts**:
   - `summarizeSnapshot` - Runs the `snapshot-summary` skill, with an optional `team` argument
+
+### Changed
+
+- Requires `fastmcp>=4.1.1` (was `>=2.14.3`) for the skills provider that serves `skill://` resources
 
 ## [1.4.0]
 
