@@ -8,8 +8,9 @@ This project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0.htm
 
 - **Tools**:
   - `getSnapshotComments()` - Driver comments for a snapshot, newest first, with commenter identities removed
+  - `compareSnapshotScores()` - Compare DXI, driver, or workflow scores between two snapshots, matched by id, with the change, direction, and distance from the p50 benchmark computed server-side
 - **Skills**:
-  - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`
+  - `snapshot-summary` - Summarizes the latest completed snapshot against the previous one. Served as `skill://snapshot-summary/SKILL.md`. Uses `compareSnapshotScores()` for the arithmetic and includes examples, common issues, and a description with team and negative triggers
 - **Prompts**:
   - `summarizeSnapshot` - Runs the `snapshot-summary` skill, with an optional `team` argument
 

@@ -258,3 +258,165 @@ def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) 
         "comments": comments,
         "next_cursor": (data.get("response_metadata") or {}).get("next_cursor"),
     }
+
+
+def _driver_rows(results: list) -> dict:
+    """Index driver results by driver id, with respondents = answers excluding I don't know / N/A."""
+    rows = {}
+    for r in results:
+        item = r.get("driver") or {}
+        dist = r.get("distribution") or {}
+        rows[item.get("id")] = {
+            "name": item.get("name"),
+            "score": r.get("score"),
+            "hidden": r.get("hidden", False),
+            "respondents": sum(
+                v for k, v in dist.items() if k != "idk_na_count" and isinstance(v, int)
+            ),
+            "benchmark_p_50": (item.get("benchmark") or {}).get("p_50"),
+            "lower_is_better": False,
+        }
+    return rows
+
+
+def _workflow_rows(results: list) -> dict:
+    """Index workflow results by workflow id."""
+    rows = {}
+    for r in results:
+        item = r.get("workflow") or {}
+        rows[item.get("id")] = {
+            "name": item.get("name"),
+            "score": r.get("score"),
+            "hidden": r.get("hidden", False),
+            "respondents": r.get("total_respondents"),
+            "benchmark_p_50": (item.get("benchmark") or {}).get("p_50"),
+            "lower_is_better": bool(item.get("lower_is_better")),
+            "unit": item.get("unit"),
+        }
+    return rows
+
+
+def _dxi_rows(results: list) -> dict:
+    """Index the single DXI result under the id "dxi"."""
+    rows = {}
+    for r in results[:1]:
+        rows["dxi"] = {
+            "name": "DXI",
+            "score": r.get("score"),
+            "hidden": r.get("hidden", False),
+            "respondents": None,
+            "benchmark_p_50": None,
+            "lower_is_better": False,
+        }
+    return rows
+
+
+_ROW_BUILDERS = {"driver": _driver_rows, "workflow": _workflow_rows, "dxi": _dxi_rows}
+
+
+@mcp.tool()
+def compareSnapshotScores(
+    snapshot_id: str,
+    comparison_snapshot_id: str,
+    score_type: str,
+    team_ids: str = None,
+    snapshot_team_ids: str = None,
+    group_ids: str = None,
+    attribute_ids: str = None,
+    branch_ids: str = None,
+) -> dict:
+    """
+    Compare one score type between two snapshots. Items are matched by id (not name, since
+    branch variants reuse names), and the change is computed here so it does not have to be
+    done by hand. Rows hidden in either snapshot, or present in only one, are listed separately
+    and left out of results.
+
+    Each result has: id, name, score, previous_score, change (score - previous_score),
+    direction ("better", "worse" or "flat", taking lower_is_better into account), respondents
+    (in the current snapshot; for drivers this excludes "I don't know / N/A" answers),
+    benchmark_p_50, vs_p_50 (score - benchmark_p_50, or null if no benchmark), and for
+    workflows unit and lower_is_better. Results are sorted by change, largest increase first.
+
+    Args:
+        snapshot_id (str): The current snapshot ID from listSnapshots.
+        comparison_snapshot_id (str): The earlier snapshot ID to compare against.
+        score_type (str): One of "driver", "workflow", "dxi".
+        Optional filters, applied to both snapshots (see _filter_params for details):
+            - team_ids
+            - snapshot_team_ids
+            - group_ids
+            - attribute_ids
+            - branch_ids
+    """
+    if score_type not in _ROW_BUILDERS:
+        return {"error": f"score_type must be one of {', '.join(_ROW_BUILDERS)}"}
+    if snapshot_id == comparison_snapshot_id:
+        return {"error": "snapshot_id and comparison_snapshot_id must be different"}
+
+    method = f"snapshots.{SCORE_TYPES[score_type]['method']}"
+    indexed = {}
+    for label, sid in (
+        ("current", snapshot_id),
+        ("comparison", comparison_snapshot_id),
+    ):
+        params = _filter_params(
+            sid, team_ids, snapshot_team_ids, group_ids, attribute_ids, branch_ids
+        )
+        data = _get(method, params)
+        if "error" in data:
+            return {"error": f"{label} snapshot {sid}: {data['error']}"}
+        indexed[label] = _ROW_BUILDERS[score_type](data.get("results", []))
+
+    current, previous = indexed["current"], indexed["comparison"]
+    results, hidden, only_current, only_previous = [], [], [], []
+
+    for item_id, row in current.items():
+        prev = previous.get(item_id)
+        if prev is None:
+            only_current.append({"id": item_id, "name": row["name"]})
+            continue
+        if row["hidden"] or prev["hidden"]:
+            hidden.append({"id": item_id, "name": row["name"]})
+            continue
+        if row["score"] is None or prev["score"] is None:
+            continue
+
+        change = round(row["score"] - prev["score"], 2)
+        if change == 0:
+            direction = "flat"
+        elif (change < 0) == row["lower_is_better"]:
+            direction = "better"
+        else:
+            direction = "worse"
+
+        p50 = row["benchmark_p_50"]
+        result = {
+            "id": item_id,
+            "name": row["name"],
+            "score": row["score"],
+            "previous_score": prev["score"],
+            "change": change,
+            "direction": direction,
+            "respondents": row["respondents"],
+            "benchmark_p_50": p50,
+            "vs_p_50": round(row["score"] - p50, 2) if p50 is not None else None,
+        }
+        if score_type == "workflow":
+            result["unit"] = row["unit"]
+            result["lower_is_better"] = row["lower_is_better"]
+        results.append(result)
+
+    for item_id, row in previous.items():
+        if item_id not in current:
+            only_previous.append({"id": item_id, "name": row["name"]})
+
+    results.sort(key=lambda r: r["change"], reverse=True)
+    return {
+        "score_type": score_type,
+        "snapshot_id": snapshot_id,
+        "comparison_snapshot_id": comparison_snapshot_id,
+        "results": results,
+        "hidden": hidden,
+        "only_in_current": only_current,
+        "only_in_comparison": only_previous,
+    }

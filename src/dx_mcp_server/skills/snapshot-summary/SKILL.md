@@ -1,6 +1,10 @@
 ---
 name: snapshot-summary
-description: Summarize the results of the latest completed DX snapshot. Use when the user asks for snapshot results, a snapshot summary, how the org scored, what changed since the last snapshot, or what developers are saying in snapshot comments.
+description: Summarize the results of the latest completed DX snapshot for a leader or manager, org-wide or for one team. Use when the user asks for snapshot results, a snapshot summary, how the org or their team scored, what changed since the last snapshot, or what developers are saying in snapshot comments. Do not use for a one-off question about a single score or driver; call the snapshot tools directly instead.
+metadata:
+  author: DX
+  version: 1.1.0
+  mcp-server: dx-mcp-server
 ---
 
 # Snapshot summary
@@ -15,26 +19,30 @@ If there is only one snapshot, skip all comparisons and say so.
 
 ## 2. Collect data
 
-- Headline: `getSnapshotScores(snapshot_id, "dxi")` for both snapshots.
-- Drivers: `getSnapshotScores(snapshot_id, "driver")` for both snapshots.
-- Workflows: `getSnapshotScores(snapshot_id, "workflow")` for both snapshots.
+Use `compareSnapshotScores(snapshot_id, comparison_snapshot_id, score_type)` for the changes. It matches items by id, computes `change`, `direction` and `vs_p_50`, and lists hidden and unmatched items separately. Do not recompute these by hand.
+
+- Headline: `compareSnapshotScores(..., "dxi")`.
+- Drivers: `compareSnapshotScores(..., "driver")`.
+- Workflows: `compareSnapshotScores(..., "workflow")`, plus `getSnapshotScores(snapshot_id, "workflow")` for the latest snapshot to see each workflow's `distribution`.
 - Comments: `getSnapshotComments(snapshot_id)` for the latest snapshot. Follow `next_cursor` for at most 3 pages. Group comments by `driver_name`.
+
+If there is no comparison snapshot, use `getSnapshotScores` for the latest snapshot instead of `compareSnapshotScores`.
 
 ### Scoping to a team
 
-If the user asks about one team, or the request names a team, for example a manager asking about their own team, scope the scores to it. Find the team with `listTeams`, then pass its `team_ids` filter to every `getSnapshotScores` call for both snapshots. Team ids are stable across snapshots, so use them rather than snapshot team ids. Compare the team with the comparison snapshot, the org and the benchmarks, but keep the story about what that team can discuss and influence.
+If the user asks about one team, or the request names a team, for example a manager asking about their own team, scope the scores to it. Find the team with `listTeams`, then pass its id as the `team_ids` filter to every `compareSnapshotScores` and `getSnapshotScores` call. Team ids are stable across snapshots, so use them rather than snapshot team ids. Compare the team with the comparison snapshot, the org and the benchmarks, but keep the story about what that team can discuss and influence.
 
 `getSnapshotComments` cannot be filtered by team. Say that the comment themes are org-wide, or leave them out if they would mislead.
 
 ## 3. Handle thin data
 
-A result with `hidden: true` is below the response threshold. Never treat it as zero. Leave it out of rankings. Also treat rows with very few responses as inconclusive and do not draw conclusions from them. Mention hidden or thin results only when they limit something you are reporting.
+A result with `hidden: true` is below the response threshold. Never treat it as zero. Leave it out of rankings. Also treat rows with very few `respondents` as inconclusive and do not draw conclusions from them. Mention hidden or thin results only when they limit something you are reporting.
 
 ## 4. Work out the movers
 
-**Drivers.** The driver results include drivers from every survey branch, and some names repeat with different ids. Match drivers between the two snapshots by id, and compare only drivers present in both with a benchmark and a meaningful number of responses. Ignore the small branch drivers. Subtract, then keep the 3 biggest gains and the 3 biggest drops. Ignore drivers hidden in either snapshot.
+**Drivers.** The driver results include drivers from every survey branch, and some names repeat with different ids. From the `compareSnapshotScores` results, keep only drivers with a `benchmark_p_50` and a meaningful number of `respondents`. Ignore the small branch drivers. The results are sorted by `change`, so take the 3 biggest gains from the top and the 3 biggest drops from the bottom. Drivers in `hidden`, `only_in_current` or `only_in_comparison` are already excluded. Note them only if they matter.
 
-**Workflows.** Each workflow has its own `unit`, so never add, average or rank workflows against each other or against drivers. For each workflow, compare `score` with `workflow.benchmark.p_50`, using `workflow.lower_is_better` to decide which side is worse. Report the workflows furthest on the wrong side of p50, and show the change from the comparison snapshot in the workflow's own unit. Also flag a workflow whose `distribution` is mostly in the worst options, even if its score looks fine. Ignore workflows with no benchmark and only a few respondents. Note workflows that were not asked in both snapshots.
+**Workflows.** Each workflow has its own `unit`, so never add, average or rank workflows against each other or against drivers. Use `direction` and `vs_p_50` from `compareSnapshotScores`, which already account for `lower_is_better`. Report the workflows furthest on the wrong side of p50, and show the `change` in the workflow's own unit. Also flag a workflow whose `distribution` in the latest snapshot is mostly in the worst options, even if its score looks fine. Ignore workflows with no benchmark and only a few respondents. Note workflows in `only_in_current` or `only_in_comparison` as not asked in both snapshots.
 
 **Why.** To explain a big driver drop, do these in order:
 
@@ -73,3 +81,19 @@ The comments should add something the scores do not already show. Do not repeat 
 - If comments are unavailable, say so and write a scores-only summary.
 - Protect anonymity. Do not over-interpret comments or scores from small groups, and treat low-response rows as inconclusive.
 - Do not give recommendations unless the user asks. If they ask for next steps, give up to three. Tie each to a driver or workflow, and give a next step and the metric to check in the next snapshot. Separate what the team can do itself from what needs help from outside the team.
+
+## Examples
+
+**"How did the last snapshot go?"** Org-wide summary. Compare the latest snapshot with the one before it. Follow steps 1 to 5 as written.
+
+**"How did my team score? I manage the Platform team."** Team-scoped summary. Find Platform with `listTeams`, pass its id as `team_ids` to every score call, and compare the team with the previous snapshot, the org and the benchmarks. Say the comment themes are org-wide.
+
+**"Summarize our snapshot" when there is only one completed snapshot.** No comparison. Use `getSnapshotScores` for the latest snapshot, report scores against the benchmark only, and say at the top that there is nothing to compare with yet.
+
+## Common issues
+
+- **No team matches the name.** Say so and list the closest names from `listTeams`. Do not guess, and do not fall back to an org-wide summary without saying that is what you did.
+- **Several teams match the name.** Ask which one, or if the request makes it obvious, say which you chose at the top.
+- **Every result for the team is hidden.** The team is below the response threshold. Say that, and do not report the team's scores. Offer the org-wide summary instead.
+- **A tool returns an `error` field.** Report the error text and continue with the data you have. If `compareSnapshotScores` fails, fall back to `getSnapshotScores` for each snapshot and compare by id.
+- **A snapshot has far fewer responses than the other.** Say so in Context, and treat changes as weaker signals.
