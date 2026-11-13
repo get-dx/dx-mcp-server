@@ -13,7 +13,7 @@ authors = [
     {name = "Zak Hijaouy", email = "zak.hijaouy@getdx.com"}
 ]
 dependencies = [
-    "fastmcp>=2.14.3",
+    "fastmcp>=4.1.1",
     "psycopg[binary]>=3.0.0",
     "requests>=2.32.0",
 ]

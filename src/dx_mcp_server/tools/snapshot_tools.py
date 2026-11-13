@@ -245,12 +245,13 @@ def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) 
     """
     data = _get(
         "snapshots.driverComments.list",
-        {"id": snapshot_id, "limit": limit, "cursor": cursor},
+        {"id": snapshot_id, "limit": max(1, min(limit, 100)), "cursor": cursor},
     )
     if "error" in data:
         return data
+    # Allowlist fields so any identifying data the API adds later never reaches the caller.
     comments = [
-        {k: v for k, v in comment.items() if k != "email"}
+        {k: comment.get(k) for k in ("driver_name", "text", "created_at")}
         for comment in data.get("comments", [])
     ]
     return {
