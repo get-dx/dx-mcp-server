@@ -21,7 +21,7 @@ If there is only one snapshot, skip all comparisons and say so.
 
 Use `compareSnapshotScores(snapshot_id, score_type, comparison_snapshot_id)` for scores. It matches items by id, computes `change`, `direction` and `vs_p_50`, includes each item's `distribution`, and lists hidden and unmatched items separately. Prefer it over working these out by hand. If there is no comparison snapshot, call it without `comparison_snapshot_id`.
 
-- Headline: `compareSnapshotScores(..., "dxi")`.
+- Headline: `compareSnapshotScores(..., "dxi")`. This returns one row per scale (`dxi_five_point`, `dxi_three_point`). Report the scale that has a score in both snapshots. DXI has no benchmark, so compare drivers against the benchmark instead.
 - Drivers: `compareSnapshotScores(..., "driver")`.
 - Workflows: `compareSnapshotScores(..., "workflow")`.
 - Comments: `getSnapshotComments(snapshot_id)` for the latest snapshot. Follow `next_cursor` for at most 3 pages. Group comments by `driver_name`.
@@ -34,7 +34,7 @@ If the user asks about one team, or the request names a team, for example a mana
 
 ## 3. Handle thin data
 
-A result with `hidden: true` is below the response threshold. Never treat it as zero. Leave it out of rankings. Also treat rows with very few `respondents` as inconclusive and do not draw conclusions from them. Mention hidden or thin results only when they limit something you are reporting.
+Items in the `hidden` list are below the response threshold or had no rated answers. Never treat them as zero. Leave it out of rankings. Also treat rows with very few `respondents` as inconclusive and do not draw conclusions from them. Mention hidden or thin results only when they limit something you are reporting.
 
 ## 4. Work out the movers
 
@@ -55,7 +55,7 @@ If none of these explains it, say the data does not explain it. Do not state a r
 Use these headings in this order. Keep it short and plain.
 
 1. **Context**: snapshot date, number of responses, number of responses in the comparison snapshot, and the comparison snapshot date. State the counts only. Add a line of comment only when participation changed a lot.
-2. **Summary**: two or three sentences on how the org did against the benchmark. Give the DXI score and its change from the comparison snapshot. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
+2. **Summary**: two or three sentences on how the org did. Give the DXI score and its change from the comparison snapshot, and how the drivers did against the benchmark. Give the numbers. Lead with the 2 to 4 strongest signals: the biggest strengths to keep, the biggest risks to look into, and meaningful changes since the last snapshot.
 3. **What moved**: split into **Gains** and **Drops**, with the change in points for each. For each big drop, say why. Then the workflows furthest from p50, with their units.
 4. **What people are saying**: the few themes that matter most, largest first. See the rules below.
 

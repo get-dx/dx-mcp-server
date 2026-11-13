@@ -6,16 +6,48 @@ from dx_mcp_server.server import mcp
 DX_API_HOST = environ.get("DX_API_HOST", "https://api.getdx.com")
 WEB_API_TOKEN = environ.get("WEB_API_TOKEN", "")
 
+
+def _dxi_item(r: dict) -> dict:
+    """DXI results carry no item; synthesize one per scale so the two scales stay apart."""
+    scale = "five" if r.get("is_five_point_scale") else "three"
+    return {"id": f"dxi_{scale}_point", "name": f"DXI ({scale}-point scale)"}
+
+
+def _rated_answers(r: dict) -> int:
+    """Driver respondents: count answers, leaving out "I don't know / N/A"."""
+    return sum(
+        v for k, v in (r.get("distribution") or {}).items() if k != "idk_na_count"
+    )
+
+
 # Score types supported by the snapshots.*Scores and snapshots.*.breakdown web API methods.
 # Each maps to the API method prefix and the name of the item id param its breakdown expects.
+# Types that compareSnapshotScores supports also say how to read a result row: "item" returns
+# the scored item (id, name, benchmark, ...) and "respondents" returns the respondent count.
 SCORE_TYPES = {
-    "driver": {"method": "driverScores", "item_param": "driver_id"},
-    "workflow": {"method": "workflowScores", "item_param": "workflow_id"},
+    "driver": {
+        "method": "driverScores",
+        "item_param": "driver_id",
+        "item": lambda r: r.get("driver") or {},
+        "respondents": _rated_answers,
+    },
+    "workflow": {
+        "method": "workflowScores",
+        "item_param": "workflow_id",
+        "item": lambda r: r.get("workflow") or {},
+        "respondents": lambda r: r.get("total_respondents"),
+    },
     "impact": {"method": "impactScores", "item_param": "impact_id"},
     "csat": {"method": "csatScores", "item_param": "csat_id"},
-    "dxi": {"method": "dxiScores", "item_param": None},
+    "dxi": {
+        "method": "dxiScores",
+        "item_param": None,
+        "item": _dxi_item,
+        "respondents": lambda r: r.get("total_respondents"),
+    },
     "allocation": {"method": "allocationPercentages", "item_param": "question_id"},
 }
+COMPARABLE_SCORE_TYPES = [t for t, score in SCORE_TYPES.items() if "item" in score]
 
 
 def _get(method: str, params: dict = None) -> dict:
@@ -260,39 +292,27 @@ def getSnapshotComments(snapshot_id: str, limit: int = 100, cursor: str = None) 
     }
 
 
-# Score types compareSnapshotScores supports, mapped to the key that holds the item in each
-# result. None means the result is the item itself (DXI returns one unnamed headline row).
-COMPARABLE_ITEM_KEYS = {"driver": "driver", "workflow": "workflow", "dxi": None}
-
-
-def _index_rows(results: list, item_key: str) -> dict:
-    """Index getSnapshotScores results by item id in a shape shared by all comparable types."""
+def _index_rows(results: list, score: dict) -> dict:
+    """Index getSnapshotScores results by item id, in the shape compareSnapshotScores returns."""
     rows = {}
-    for r in results[:1] if item_key is None else results:
-        item = (
-            {"id": "dxi", "name": "DXI"}
-            if item_key is None
-            else (r.get(item_key) or {})
-        )
-        distribution = r.get("distribution")
-        if "total_respondents" in r:
-            respondents = r.get("total_respondents")
-        elif isinstance(distribution, dict):
-            # Drivers: count answers, leaving out "I don't know / N/A".
-            respondents = sum(v for k, v in distribution.items() if k != "idk_na_count")
-        else:
-            respondents = None
+    for r in results:
+        item = score["item"](r)
         rows[item.get("id")] = {
+            "id": item.get("id"),
             "name": item.get("name"),
             "score": r.get("score"),
             "hidden": bool(r.get("hidden")),
-            "respondents": respondents,
-            "distribution": distribution,
+            "respondents": score["respondents"](r),
+            "distribution": r.get("distribution"),
             "benchmark_p_50": (item.get("benchmark") or {}).get("p_50"),
-            "lower_is_better": bool(item.get("lower_is_better")),
             "unit": item.get("unit"),
+            "lower_is_better": bool(item.get("lower_is_better")),
         }
     return rows
+
+
+def _stub(row: dict) -> dict:
+    return {"id": row["id"], "name": row["name"]}
 
 
 @mcp.tool()
@@ -310,7 +330,9 @@ def compareSnapshotScores(
     Normalize one score type for a snapshot and, if a comparison snapshot is given, compute the
     change from it. Items are matched by id (not name, since branch variants reuse names) and the
     arithmetic is done here so it does not have to be done by hand. Rows hidden in either
-    snapshot, or present in only one, are listed separately and left out of results.
+    snapshot, or with no score in the current one, are listed under hidden; rows present in
+    only one snapshot are listed under only_in_current or only_in_comparison. Both are left
+    out of results.
 
     Each result has: id, name, score, previous_score, change (score - previous_score), direction
     ("better", "worse" or "flat", taking lower_is_better into account), respondents (for drivers
@@ -318,6 +340,9 @@ def compareSnapshotScores(
     counts), benchmark_p_50, vs_p_50 (score - benchmark_p_50, or null if no benchmark), unit, and
     lower_is_better. Without a comparison snapshot, previous_score, change and direction are null.
     Results are sorted by change, largest increase first, or by name when there is no comparison.
+
+    "dxi" returns one row per scale (dxi_five_point, dxi_three_point). DXI has no benchmark, so
+    its benchmark_p_50 and vs_p_50 are null; use "driver" results for benchmark comparisons.
 
     Args:
         snapshot_id (str): The current snapshot ID from listSnapshots.
@@ -331,39 +356,35 @@ def compareSnapshotScores(
             - attribute_ids
             - branch_ids
     """
-    if score_type not in COMPARABLE_ITEM_KEYS:
-        return {"error": f"score_type must be one of {', '.join(COMPARABLE_ITEM_KEYS)}"}
+    if score_type not in COMPARABLE_SCORE_TYPES:
+        return {
+            "error": f"score_type must be one of {', '.join(COMPARABLE_SCORE_TYPES)}"
+        }
     if snapshot_id == comparison_snapshot_id:
         return {"error": "snapshot_id and comparison_snapshot_id must be different"}
 
-    item_key = COMPARABLE_ITEM_KEYS[score_type]
     filters = (team_ids, snapshot_team_ids, group_ids, attribute_ids, branch_ids)
-
-    data = getSnapshotScores(snapshot_id, score_type, *filters)
-    if "error" in data:
-        return {"error": f"current snapshot {snapshot_id}: {data['error']}"}
-    current = _index_rows(data["results"], item_key)
-
-    previous = {}
-    if comparison_snapshot_id:
-        data = getSnapshotScores(comparison_snapshot_id, score_type, *filters)
+    snapshots = {"current": snapshot_id, "comparison": comparison_snapshot_id}
+    indexed = {}
+    for label, sid in snapshots.items():
+        if not sid:
+            continue
+        data = getSnapshotScores(sid, score_type, *filters)
         if "error" in data:
-            return {
-                "error": f"comparison snapshot {comparison_snapshot_id}: {data['error']}"
-            }
-        previous = _index_rows(data["results"], item_key)
+            data["error"] = f"{label} snapshot {sid}: {data['error']}"
+            return data
+        indexed[label] = _index_rows(data["results"], SCORE_TYPES[score_type])
+    current, previous = indexed["current"], indexed.get("comparison", {})
 
-    results, hidden, only_current, only_previous = [], [], [], []
+    results, hidden, only_current = [], [], []
 
     for item_id, row in current.items():
         prev = previous.get(item_id)
         if comparison_snapshot_id and prev is None:
-            only_current.append({"id": item_id, "name": row["name"]})
+            only_current.append(_stub(row))
             continue
-        if row["hidden"] or (prev and prev["hidden"]):
-            hidden.append({"id": item_id, "name": row["name"]})
-            continue
-        if row["score"] is None:
+        if row["hidden"] or row["score"] is None or (prev and prev["hidden"]):
+            hidden.append(_stub(row))
             continue
 
         change = direction = None
@@ -377,26 +398,17 @@ def compareSnapshotScores(
                 direction = "worse"
 
         p50 = row["benchmark_p_50"]
-        results.append(
-            {
-                "id": item_id,
-                "name": row["name"],
-                "score": row["score"],
-                "previous_score": prev["score"] if prev else None,
-                "change": change,
-                "direction": direction,
-                "respondents": row["respondents"],
-                "distribution": row["distribution"],
-                "benchmark_p_50": p50,
-                "vs_p_50": round(row["score"] - p50, 2) if p50 is not None else None,
-                "unit": row["unit"],
-                "lower_is_better": row["lower_is_better"],
-            }
-        )
+        result = {
+            **row,
+            "previous_score": prev["score"] if prev else None,
+            "change": change,
+            "direction": direction,
+            "vs_p_50": round(row["score"] - p50, 2) if p50 is not None else None,
+        }
+        del result["hidden"]
+        results.append(result)
 
-    for item_id, row in previous.items():
-        if item_id not in current:
-            only_previous.append({"id": item_id, "name": row["name"]})
+    only_previous = [_stub(row) for i, row in previous.items() if i not in current]
 
     if comparison_snapshot_id:
         results.sort(
